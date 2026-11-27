@@ -15,7 +15,7 @@ export default function CouponPanel({coupons,demo,onDemo,onNew,onEdit,onShare,on
     {demo&&<p className="coupon-demo-note">Exemplos fictícios: 20% com teto de R$ 1.000 tem destaque; 50% com teto de R$ 5 fica abaixo.</p>}
     {sorted.length?<div className="coupon-grid">{sorted.map(c=>{
       const check=checkCoupon(c),featured=check.ready&&check.maximum===max;
-      return <article className={`coupon-card ${featured?"coupon-featured":""}`} key={c.id}>
+      return <article className={`coupon-card ${featured?"coupon-featured":""}`} data-marketplace={c.marketplace||"mercado"} data-status={check.status} key={c.id}>
         {featured&&<div className="coupon-featured-ribbon"><Star size={15}/>Maior desconto máximo</div>}
         <div className="coupon-card-top"><TicketPercent size={25}/><span className={`badge ${check.ready?"green":""}`}>{labels[check.status]}</span></div>
         <span className="coupon-market">{marketName(c)}{c.demo?" · exemplo fictício":""}</span>

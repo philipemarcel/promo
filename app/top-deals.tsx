@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState,type ReactNode} from "react";
-import {Radar,RefreshCw,ChevronDown,ShieldCheck,Clock,Plus,Info,TicketPercent,TrendingDown} from "lucide-react";
+import {Radar,RefreshCw,ChevronDown,ShieldCheck,Clock,Plus,Info,TicketPercent,TrendingDown,Star} from "lucide-react";
 import {type Offer,type Coupon,estimate} from "../lib/offers";
 import {demoRanking} from "../lib/demo-ranking";
 import {trustLabels,rankOffers} from "../lib/ranking";
@@ -12,12 +12,38 @@ export default function TopDeals({demo,onDemo,coupons,connections,api,card,onMan
   useEffect(()=>{if(!auto||demo)return;const timer=setInterval(()=>void load(connections.mercado||connections.shopee),60000);return()=>clearInterval(timer);},[auto,demo,connections.mercado,connections.shopee]);
   const all=demo?rankOffers(demoRanking().map(o=>({...o,history:o.history?{...o.history,discount:o.history.median?Math.round((1-estimate(o,coupons).total/o.history.median)*10000)/100:undefined}:undefined})),coupons):offers;
   const shown=all.filter(o=>(source==="all"||(o.marketplace||"mercado")===source)&&(trust==="all"||o.seller?.trust===trust)&&(!withCoupon||!!estimate(o,coupons).coupon)&&(!historyOnly||o.history?.sufficient));
+  const counts = [
+    { icon: TrendingDown, label: "Ofertas com histórico suficiente", value: all.filter(offer => offer.history?.sufficient).length },
+    { icon: TicketPercent, label: "Ofertas com cupom compatível", value: all.filter(offer => estimate(offer, coupons).coupon).length },
+    { icon: ShieldCheck, label: "Ofertas de vendedores confiáveis", value: all.filter(offer => offer.seller?.trust === "high").length },
+  ];
   return <>
-    <section className="ranking-intro"><div className="ranking-intro-main"><span className="ranking-icon"><Radar size={28}/></span><div><p className="eyebrow">PREÇO REALMENTE BOM TEM CONTEXTO</p><h2>Top 100 no seu radar</h2><p>Histórico de preço + cupom compatível + reputação do vendedor.</p></div></div><span className="ranking-limit">{all.length}<small>/ 100 ofertas</small></span></section>
-    <div className="ranking-stats"><div><TrendingDown size={18}/><b>{all.filter(o=>o.history?.sufficient).length}</b><span>com histórico suficiente</span></div><div><TicketPercent size={18}/><b>{all.filter(o=>estimate(o,coupons).coupon).length}</b><span>com cupom compatível*</span></div><div><ShieldCheck size={18}/><b>{all.filter(o=>o.seller?.trust==="high").length}</b><span>vendedores com alta confiança</span></div></div>
-    <section className="ranking-toolbar"><div className="source-control"><button className={demo?"selected":""} onClick={()=>onDemo(true)}>Demonstração</button><button className={!demo?"selected":""} onClick={()=>onDemo(false)}>Ofertas reais</button></div><div className="ranking-updates"><label className="checkbox-row"><input type="checkbox" checked={auto} onChange={e=>setAuto(e.target.checked)}/>Atualizar a cada 60 s</label><button className="button outline" disabled={loading||demo} onClick={()=>load(true)}><RefreshCw size={16} className={loading?"spin":""}/>{loading?"Consultando fontes…":"Atualizar agora"}</button><button className="button outline" onClick={onManual}><Plus size={16}/>Oferta Shopee</button></div></section>
-    <div className="ranking-filters"><label className="select-wrap"><select value={source} onChange={e=>setSource(e.target.value)} aria-label="Plataforma"><option value="all">Todas as plataformas</option><option value="mercado">Mercado Livre</option><option value="shopee">Shopee</option></select><ChevronDown size={14}/></label><label className="select-wrap"><ShieldCheck size={15}/><select value={trust} onChange={e=>setTrust(e.target.value)} aria-label="Confiabilidade do vendedor"><option value="all">Todos os vendedores</option>{Object.entries(trustLabels).map(([v,n])=><option key={v} value={v}>{n}</option>)}</select><ChevronDown size={14}/></label><button className={`filter-chip ${withCoupon?"on":""}`} onClick={()=>setWithCoupon(!withCoupon)}><TicketPercent size={15}/>Com cupom</button><button className={`filter-chip ${historyOnly?"on":""}`} onClick={()=>setHistoryOnly(!historyOnly)}><Clock size={15}/>Histórico comprovado</button></div>
-    <div className={`data-note ${demo?"":"real"}`}><span><span className="tiny-dot"/>{demo?"EXEMPLO DE RANKING":"RANKING DAS OFERTAS COLETADAS"}</span><p>{demo?"Preços, histórico e vendedores fictícios. A lista real só usa dados disponíveis.":scan?`Última coleta: ${new Date(scan.checkedAt).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo"})} · ${scan.count} anúncios consultados`:"Nenhuma coleta automática concluída. Sem dados fictícios na lista real."}</p></div>
+    <section className="ranking-intro" aria-labelledby="ranking-title">
+      <div className="ranking-intro-main">
+        <p className="ranking-markets">Mercado Livre + Shopee</p>
+        <h2 id="ranking-title"><span>Top 100</span> no seu radar</h2>
+        <p className="ranking-summary">Compare histórico de preço, cupons e reputação do vendedor.</p>
+      </div>
+      <div className="ranking-limit" aria-label={`${all.length} de 100 ofertas no ranking`}>
+        <Star className="ranking-star" aria-hidden="true" />
+        <span className="ranking-count">{all.length}<small> / 100</small></span>
+        <span className="ranking-limit-label">ofertas no ranking</span>
+      </div>
+    </section>
+    <div className="ranking-stats" aria-label="Resumo do ranking">
+      {counts.map(({icon:Icon, label, value}) => (
+        <div key={label}>
+          <Icon size={18} aria-hidden="true" />
+          <b>{value}</b>
+          <span>{label}</span>
+        </div>
+      ))}
+    </div>
+    <div className="ranking-controls">
+      <section className="ranking-toolbar" aria-label="Fonte e atualização das ofertas"><div className="source-control"><button className={demo?"selected":""} aria-pressed={demo} onClick={()=>onDemo(true)}>Demonstração</button><button className={!demo?"selected":""} aria-pressed={!demo} onClick={()=>onDemo(false)}>Ofertas reais</button></div><div className="ranking-updates"><label className="checkbox-row"><input type="checkbox" checked={auto} onChange={e=>setAuto(e.target.checked)}/>Atualizar a cada 60 s</label><button className="button outline" disabled={loading||demo} onClick={()=>load(true)}><RefreshCw size={16} className={loading?"spin":""}/>{loading?"Consultando fontes…":"Atualizar agora"}</button><button className="button outline" onClick={onManual}><Plus size={16}/>Oferta Shopee</button></div></section>
+      <div className="ranking-filters" role="group" aria-label="Filtrar ranking"><label className="select-wrap"><select value={source} onChange={e=>setSource(e.target.value)} aria-label="Plataforma"><option value="all">Todas as plataformas</option><option value="mercado">Mercado Livre</option><option value="shopee">Shopee</option></select><ChevronDown size={14}/></label><label className="select-wrap"><ShieldCheck size={15}/><select value={trust} onChange={e=>setTrust(e.target.value)} aria-label="Confiabilidade do vendedor"><option value="all">Todos os vendedores</option>{Object.entries(trustLabels).map(([v,n])=><option key={v} value={v}>{n}</option>)}</select><ChevronDown size={14}/></label><button className={`filter-chip ${withCoupon?"on":""}`} aria-pressed={withCoupon} onClick={()=>setWithCoupon(!withCoupon)}><TicketPercent size={15}/>Com cupom</button><button className={`filter-chip ${historyOnly?"on":""}`} aria-pressed={historyOnly} onClick={()=>setHistoryOnly(!historyOnly)}><Clock size={15}/>Histórico comprovado</button></div>
+    </div>
+    <div className={`data-note ranking-data-note ${demo?"":"real"}`}><span>{demo?"Exemplos de ofertas":"Ofertas coletadas"}</span><p>{demo?"Preços, histórico e vendedores fictícios.":scan?`Última coleta: ${new Date(scan.checkedAt).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo"})} · ${scan.count} anúncios consultados`:"Aguardando a primeira coleta de ofertas."}</p></div>
     {!demo&&!connections.shopee&&<div className="notice warning"><Info size={18}/><p>Shopee: aguardando liberação da Open API. Ofertas cadastradas manualmente ficam identificadas e não têm atualização automática.</p><a href="https://affiliate.shopee.com.br/open_api" target="_blank" rel="noreferrer">Solicitar acesso</a></div>}
     {error&&<div role="alert" className="notice warning"><Info size={18}/><p>{error}</p></div>}
     {!demo&&scan?.errors?.length>0&&<details className="scan-errors"><summary>Avisos da última coleta ({scan.errors.length})</summary>{scan.errors.map((e:string)=><p key={e}>{e}</p>)}</details>}

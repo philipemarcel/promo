@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./notebook.css";
+import "./notebook-ranking.css";
+import "./notebook-cards.css";
 
 export const metadata: Metadata = {
   title: "PromoRadar · Central de ofertas",

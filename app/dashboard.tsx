@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { Radar, LayoutDashboard, Search, Bell, TicketPercent, Send, Radio, History, Settings, ChevronDown, Plus, SlidersHorizontal, ExternalLink, Truck, X, Copy, Download, RefreshCw, CircleHelp, Check, Pause, Play, Trash2, Zap, ShoppingBag, CheckCircle2, Link2, Camera as Instagram, SquareUserRound as Facebook, MessageCircle, ShieldCheck, Clock, TrendingDown, LogIn } from "lucide-react";
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Radar, LayoutDashboard, Search, Bell, TicketPercent, Send, Radio, History, Settings, ChevronDown, Plus, SlidersHorizontal, ExternalLink, Truck, X, Copy, Download, RefreshCw, CircleHelp, Check, Pause, Play, Trash2, Zap, ShoppingBag, CheckCircle2, Link2, Camera as Instagram, SquareUserRound as Facebook, MessageCircle, ShieldCheck, Clock, TrendingDown, LogIn, BookOpen, Menu } from "lucide-react";
 import { demoOffers, demoCoupons, estimate, money, caption, marketName, type Offer, type Coupon } from "../lib/offers";
 import {trustLabels} from "../lib/ranking";
 import {demoRanking} from "../lib/demo-ranking";
@@ -12,14 +12,26 @@ type Tab = "Top 100"|"Ofertas"|"Monitoramento"|"Cupons"|"Publicações"|"Canais"
 type Data = {watches:any[];coupons:Coupon[];posts:any[];events:any[];settings:{autoPublish:boolean;queries?:string[]};connections:{mercado:boolean;shopee:boolean;facebook:boolean;instagram:boolean;monitor:boolean}};
 const empty:Data={watches:[],coupons:[],posts:[],events:[],settings:{autoPublish:false},connections:{mercado:false,shopee:false,facebook:false,instagram:false,monitor:false}};
 const tabs = [{name:"Top 100",icon:Radar},{name:"Ofertas",icon:LayoutDashboard},{name:"Monitoramento",icon:Bell},{name:"Cupons",icon:TicketPercent},{name:"Publicações",icon:Send},{name:"Canais",icon:Radio},{name:"Histórico",icon:History}] as const;
+const pageTitles: Record<Tab, { title: string; description?: string }> = {
+  "Top 100": { title: "Caderno de ofertas" },
+  Ofertas: { title: "Folhas de ofertas", description: "Pesquise no Mercado Livre e na Shopee e compare os preços." },
+  Monitoramento: { title: "Lista de desejos", description: "Defina um preço-alvo e acompanhe os produtos do seu interesse." },
+  Cupons: { title: "Coleção de cupons", description: "Guarde os seus códigos e confira o maior desconto em reais." },
+  Publicações: { title: "Rascunhos de publicações", description: "Prepare e acompanhe o que você compartilha nos seus canais." },
+  Canais: { title: "Canais e lojas", description: "Configure as integrações com as lojas e suas redes sociais." },
+  Histórico: { title: "Diário de atividades", description: "Confira o registro das verificações e das publicações." },
+  Configurações: { title: "Configurações", description: "Ajuste a automação e consulte as conexões necessárias." },
+};
 const channelNames:Record<string,string>={whatsapp:"Status do WhatsApp",instagram:"Instagram",facebook:"Facebook"};
 const statuses:Record<string,string>={draft:"Rascunho",published:"Publicada",processing:"Processando imagem",sending:"Enviando",uncertain:"Conferir na rede",failed:"Falhou"};
 const date=(value:string)=>new Date(value).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"short"});
 
 function ProductArt({offer}:{offer:Offer}) {
+  const artId = useId();
   if(offer.image) return <img className="product-photo" src={offer.image} alt={offer.title} loading="lazy" />;
-  const gradient=`metal-${offer.id}`;
-  return <svg viewBox="0 0 260 174" className="product-art" aria-hidden="true"><defs><linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#424b5b"/><stop offset=".5" stopColor="#171e2b"/><stop offset="1" stopColor="#394356"/></linearGradient><filter id={`shadow-${offer.id}`}><feDropShadow dx="0" dy="9" stdDeviation="6" floodOpacity=".16"/></filter></defs><ellipse cx="130" cy="150" rx="65" ry="7" fill="#dfe4ec" opacity=".6"/><g filter={`url(#shadow-${offer.id})`}>
+  const gradient=`metal-${artId}`;
+  const shadow=`shadow-${artId}`;
+  return <svg viewBox="0 0 260 174" className="product-art" aria-hidden="true"><defs><linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1"><stop stopColor="#665b80"/><stop offset=".5" stopColor="#302943"/><stop offset="1" stopColor="#514567"/></linearGradient><filter id={shadow}><feDropShadow dx="0" dy="9" stdDeviation="6" floodOpacity=".16"/></filter></defs><ellipse cx="130" cy="150" rx="65" ry="7" fill="#baacc7" opacity=".3"/><g filter={`url(#${shadow})`}>
     {offer.type==="headphones"?<><path d="M78 102V74a52 52 0 0 1 104 0v28" fill="none" stroke="#1e2738" strokeWidth="15"/><path d="M78 80v-8a52 52 0 0 1 104 0v8" fill="none" stroke="#5b6578" strokeWidth="6"/><rect x="65" y="81" width="28" height="57" rx="13" fill={`url(#${gradient})`} transform="rotate(-8 80 110)"/><rect x="168" y="81" width="28" height="57" rx="13" fill={`url(#${gradient})`} transform="rotate(8 180 110)"/><path d="M87 96v27M174 96v27" stroke="#667186" strokeWidth="3" strokeLinecap="round"/></>:
     offer.type==="coffee"?<><rect x="86" y="27" width="83" height="116" rx="10" fill="#d2d7dc"/><rect x="87" y="32" width="82" height="34" rx="8" fill={`url(#${gradient})`}/><rect x="92" y="73" width="70" height="63" rx="4" fill="#3b4350"/><circle cx="107" cy="48" r="5" fill="#99aa8c"/><circle cx="146" cy="48" r="9" fill="#bcc3c9"/><path d="M128 67v17h28" stroke="#1d2531" strokeWidth="8" strokeLinecap="round"/><path d="M106 109h38v17a12 12 0 0 1-12 12h-14a12 12 0 0 1-12-12z" fill="#f7f8f9"/><path d="M144 112h8a8 8 0 0 1 0 16h-8" stroke="#f7f8f9" fill="none" strokeWidth="4"/></>:
     offer.type==="watch"?<><rect x="111" y="9" width="39" height="150" rx="14" fill="#8c9c86"/><rect x="98" y="46" width="65" height="80" rx="20" fill="#c7ccc1"/><rect x="103" y="51" width="55" height="70" rx="16" fill="#111c22"/><text x="130" y="79" textAnchor="middle" fontSize="22" fontWeight="600" fill="#e6ff9a">10:09</text><path d="M111 99l8-6 8 9 8-16 8 8 9-4" stroke="#b9e981" strokeWidth="2" fill="none"/><rect x="164" y="68" width="4" height="15" rx="2" fill="#8e998e"/></>:
@@ -39,6 +51,23 @@ export default function Dashboard() {
   const [tab,setTab]=useState<Tab>("Top 100"),[data,setData]=useState<Data>(empty),[demo,setDemo]=useState(true),[offers,setOffers]=useState<Offer[]>([]),[query,setQuery]=useState(""),[category,setCategory]=useState("Todas"),[shipping,setShipping]=useState(false),[couponOnly,setCouponOnly]=useState(false),[sort,setSort]=useState("discount"),[searchSource,setSearchSource]=useState("all"),[busy,setBusy]=useState(false),[toast,setToast]=useState(""),[needsLogin,setNeedsLogin]=useState(false);
   const [modal,setModal]=useState<"watch"|"coupon"|"compose"|"details"|"help"|"manual"|"seller"|"share"|null>(null),[selected,setSelected]=useState<Offer|null>(null),[mobile,setMobile]=useState(false),[channel,setChannel]=useState("whatsapp"),[link,setLink]=useState(""),[imageUrl,setImageUrl]=useState("");
   const [editingCoupon,setEditingCoupon]=useState<Coupon|null>(null),[shareCoupon,setShareCoupon]=useState<Coupon|null>(null);
+  const [motionPaused, setMotionPaused] = useState(false);
+  useEffect(() => {
+    try { setMotionPaused(localStorage.getItem("promoradar-motion") === "paused"); } catch {}
+  }, []);
+  useEffect(() => {
+    if (!mobile) return;
+    const dismissMenu = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobile(false);
+    };
+    window.addEventListener("keydown", dismissMenu);
+    return () => window.removeEventListener("keydown", dismissMenu);
+  }, [mobile]);
+  function toggleMotion() {
+    const paused = !motionPaused;
+    setMotionPaused(paused);
+    try { localStorage.setItem("promoradar-motion", paused ? "paused" : "playing"); } catch {}
+  }
   const notify=(text:string)=>setToast(text);
   useEffect(()=>{if(!toast)return;const t=setTimeout(()=>setToast(""),6500);return ()=>clearTimeout(t);},[toast]);
   async function api(action:string,body?:any) {
@@ -71,22 +100,78 @@ export default function Dashboard() {
     c.font="27px Arial";c.fillText("Preço e estoque sujeitos a alteração.",72,1770);c.fillText(offer.demo?"Demonstração · valores fictícios":"Publicidade · consulte as condições do anúncio",72,1815);
     const a=document.createElement("a");a.download=`promoradar-${offer.id}.jpg`;a.href=canvas.toDataURL("image/jpeg",.94);a.click();notify("Arte 1080 × 1920 baixada. Use a legenda para incluir o link.");
   }
-  const nav=(value:Tab)=>{setTab(value);setMobile(false);};
-  return <div className="app-shell">
-    <aside className={`sidebar ${mobile?"mobile-open":""}`}>
-      <a className="brand" href="/" aria-label="PromoRadar, início"><span className="brand-symbol"><Radar size={26}/></span><span>promo<span className="brand-light">radar</span><small>CENTRAL DE OFERTAS</small></span></a>
-      <div className="workspace"><span className="workspace-avatar">P</span><div>Meu espaço<small>Mercado Livre + Shopee</small></div><ChevronDown size={16}/></div>
-      <p className="nav-label">PRINCIPAL</p><nav>{tabs.map(({name,icon:Icon})=><button key={name} className={tab===name?"nav-item active":"nav-item"} onClick={()=>nav(name)}><Icon size={19}/>{name}{name==="Publicações"&&data.posts.filter(p=>p.status==="draft").length>0?<span className="nav-count">{data.posts.filter(p=>p.status==="draft").length}</span>:null}</button>)}</nav>
-      <div className="sidebar-bottom"><div className="radar-status"><span className="radar-status-icon"><Radar size={22}/></span><strong>Seu próximo achado<small>{data.connections.mercado?"Conector configurado":"Conecte o Mercado Livre"}</small></strong><button onClick={()=>nav("Canais")} aria-label="Ver conexões"><Settings size={16}/></button></div><button className={`nav-item ${tab==="Configurações"?"active":""}`} onClick={()=>nav("Configurações")}><Settings size={19}/>Configurações</button><button className="nav-item" onClick={()=>open("help")}><CircleHelp size={19}/>Como funciona</button><div className="account"><span className="avatar">P</span><div>Minha central<small>Espaço privado</small></div><ShieldCheck size={17}/></div></div>
+  const nav = (value: Tab) => {
+    setTab(value);
+    setMobile(false);
+    if (tab !== value) window.scrollTo(0, 0);
+  };
+  const page = pageTitles[tab];
+  return <div className={`app-shell ${motionPaused ? "motion-paused" : ""}`}>
+    <div className="notebook-desk" aria-hidden="true">
+      <span className="desk-wash desk-lavender" />
+      <span className="desk-wash desk-peach" />
+      <span className="desk-wash desk-mint" />
+      <span className="desk-grid" />
+    </div>
+    {mobile && <button className="notebook-menu-scrim" aria-label="Fechar navegação" onClick={() => setMobile(false)} />}
+    <aside id="notebook-sidebar" className={`sidebar ${mobile ? "mobile-open" : ""}`}>
+      <div className="notebook-binding" aria-hidden="true">
+        {Array.from({ length: 11 }, (_, index) => <i key={index} />)}
+      </div>
+      <div className="notebook-sidebar-content">
+        <a className="brand" href="/" aria-label="PromoRadar, início">
+          <span className="brand-symbol"><BookOpen size={25} /></span>
+          <span>PromoRadar<small>caderno de ofertas</small></span>
+        </a>
+        <div className="notebook-index-heading">
+          <p className="nav-label">Índice</p>
+          <button className="icon-button notebook-menu-close" onClick={() => setMobile(false)} aria-label="Fechar índice"><X size={19} /></button>
+        </div>
+        <nav aria-label="Índice do caderno">
+          {tabs.map(({ name, icon: Icon }) => (
+            <button key={name} className={tab === name ? "nav-item active" : "nav-item"} aria-current={tab === name ? "page" : undefined} onClick={() => nav(name)}>
+              <Icon size={18} />{name}
+              {name === "Publicações" && data.posts.some(post => post.status === "draft") &&
+                <span className="nav-count">{data.posts.filter(post => post.status === "draft").length}</span>}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <button className={`nav-item ${tab === "Configurações" ? "active" : ""}`} aria-current={tab === "Configurações" ? "page" : undefined} onClick={() => nav("Configurações")}><Settings size={18} />Configurações</button>
+          <button className="nav-item" onClick={() => { setMobile(false); open("help"); }}><CircleHelp size={18} />Como funciona</button>
+          <div className="account"><span className="avatar">P</span><div>Meu caderno<small>Espaço privado</small></div><ShieldCheck size={17} /></div>
+        </div>
+      </div>
     </aside>
-    <div className="main-shell"><header className="topbar"><div className="breadcrumb"><button className="mobile-toggle icon-button" onClick={()=>setMobile(!mobile)} aria-label="Abrir navegação"><SlidersHorizontal size={20}/></button><span>Minha central</span><span className="slash">/</span><strong>{tab}</strong></div><div className="top-actions"><span className="private-badge"><ShieldCheck size={14}/>Espaço privado</span><button className="icon-button" title="Ver histórico" onClick={()=>nav("Histórico")} aria-label="Ver histórico"><Bell size={19}/></button><span className="avatar small">P</span></div></header>
+    <div className="main-shell">
+      <header className="topbar">
+        <div className="breadcrumb">
+          <button className="mobile-toggle icon-button" onClick={() => setMobile(!mobile)} aria-label={mobile ? "Fechar navegação" : "Abrir navegação"} aria-expanded={mobile} aria-controls="notebook-sidebar"><Menu size={21} /></button>
+          <span className="crumb-home"><BookOpen size={15} />Meu caderno</span>
+          <span className="slash">/</span>
+          <strong>{tab}</strong>
+        </div>
+        <div className="top-actions">
+          <button className="icon-button motion-toggle" type="button" aria-label="Pausar animações" aria-pressed={motionPaused} title={motionPaused ? "Retomar animações" : "Pausar animações"} onClick={toggleMotion}>{motionPaused ? <Play size={16} /> : <Pause size={16} />}</button>
+          <button className="icon-button" title="Ver histórico" onClick={() => nav("Histórico")} aria-label="Ver histórico"><Bell size={18} /></button>
+          <span className="avatar small" aria-label="Meu caderno">P</span>
+        </div>
+      </header>
     <main>
-      <div className="page-heading"><div><p className="eyebrow">SUA CENTRAL DE OPORTUNIDADES</p><h1>{tab==="Top 100"?"As melhores oportunidades, no radar.":tab==="Ofertas"?"Boas ofertas começam aqui.":tab==="Monitoramento"?"De olho no preço certo.":tab==="Cupons"?"Um desconto a mais.":tab==="Publicações"?"Do achado à publicação.":tab==="Canais"?"Suas ofertas, mais longe.":tab==="Histórico"?"Tudo o que aconteceu.":"Do seu jeito."}</h1><p className="subtitle">{tab==="Top 100"?"Compare até 100 ofertas do Mercado Livre e da Shopee com histórico, cupons e reputação.":tab==="Ofertas"?"Busque produtos no Mercado Livre e na Shopee e compare as condições disponíveis.":tab==="Monitoramento"?"Defina o preço desejado e transforme quedas de preço em oportunidades.":tab==="Cupons"?"Cadastre cupons de fontes confiáveis e compare o desconto estimado.":tab==="Publicações"?"Prepare conteúdo para seus canais e acompanhe cada envio.":tab==="Canais"?"Configure suas contas e veja o que cada integração permite.":tab==="Histórico"?"Verificações e publicações registradas pela sua central.":"Ajuste a automação e consulte os requisitos das integrações."}</p></div><button className="button primary" onClick={()=>tab==="Top 100"?nav("Ofertas"):tab==="Cupons"?open("coupon"):tab==="Ofertas"?nav("Monitoramento"):monitor()} disabled={busy}>{tab==="Cupons"?<Plus size={17}/>:tab==="Ofertas"?<Bell size={17}/>:<RefreshCw size={17} className={busy?"spin":""}/>} {tab==="Top 100"?"Buscar produto":tab==="Cupons"?"Novo cupom":tab==="Ofertas"?"Meus alertas":"Verificar agora"}</button></div>
+      <div key={tab} className="page-heading">
+        <div>
+          <h1>{page.title}</h1>
+          {page.description && <p className="subtitle">{page.description}</p>}
+        </div>
+        <button className="button primary" onClick={() => tab === "Top 100" ? nav("Ofertas") : tab === "Cupons" ? open("coupon") : tab === "Ofertas" ? nav("Monitoramento") : monitor()} disabled={busy}>
+          {tab === "Top 100" ? <Search size={17} /> : tab === "Cupons" ? <Plus size={17} /> : tab === "Ofertas" ? <Bell size={17} /> : <RefreshCw size={17} className={busy ? "spin" : ""} />}
+          {tab === "Top 100" ? "Buscar produto" : tab === "Cupons" ? "Novo cupom" : tab === "Ofertas" ? "Meus alertas" : "Verificar agora"}
+        </button>
+      </div>
       {needsLogin&&<div className="notice warning"><LogIn size={19}/><span>Entre para salvar alertas, cupons e publicações.</span><a href="/signin-with-chatgpt?return_to=/" target="_top">Entrar com ChatGPT</a></div>}
 
       {tab==="Top 100"&&<TopDeals demo={demo} onDemo={setDemo} coupons={coupons} connections={data.connections} api={api} card={offer=><OfferCard offer={offer} coupons={coupons} open={open}/>} onManual={()=>open("manual")} onSettings={()=>nav("Canais")}/>}
       {tab==="Ofertas"&&<>
-        <section className="hero"><div><span className="hero-kicker"><span/>MENOS BUSCA. MAIS ACHADOS.</span><h2>O próximo bom negócio<br/>já está no seu radar.</h2><p>Compare preços, encontre cupons e deixe<br className="desktop"/> suas próximas publicações prontas.</p><button className="button hero-button" onClick={()=>document.getElementById("product-search")?.focus()}><Search size={17}/>Encontrar uma oferta</button></div><div className="radar-graphic" aria-hidden="true"><div className="orbit o1"/><div className="orbit o2"/><div className="orbit o3"/><div className="radar-center"><Radar size={50}/></div><span className="float-ticket"><TicketPercent size={22}/><strong>Mais desconto</strong><span>Cupons no radar</span></span><span className="float-price"><TrendingDown size={22}/><strong>Preço caiu</strong><span>Fique de olho</span></span><i className="orbit-dot d1"/><i className="orbit-dot d2"/></div></section>
         <section className="stats" aria-label="Resumo"><Stat icon={ShoppingBag} color="blue" label={demo?"Ofertas de exemplo":"Ofertas encontradas"} value={(demo?catalogDemo:offers).length} detail={demo?"Explore o painel":"Na última busca"}/><Stat icon={Bell} color="purple" label="Produtos monitorados" value={data.watches.filter(w=>w.enabled).length} detail="Alertas de preço ativos"/><Stat icon={TicketPercent} color="green" label={demo?"Cupons de exemplo":"Cupons cadastrados"} value={demo?demoCoupons.length:data.coupons.filter(c=>new Date(c.expires)>new Date()).length} detail={demo?"Cupom fictício para teste":"Dentro da validade"}/><Stat icon={Send} color="orange" label="Na fila de publicação" value={data.posts.filter(p=>p.status==="draft").length} detail="Conteúdo para seus canais"/></section>
         <section className="search-section"><div className="section-heading"><div><h2>Descubra sua próxima oferta <span className="count-pill">{shown.length}</span></h2><p>Um só lugar para encontrar e comparar oportunidades.</p></div><div className="source-control" aria-label="Fonte de ofertas"><button className={demo?"selected":""} onClick={()=>{setDemo(true);setCategory("Todas");setQuery("");}}>Demonstração</button><button className={!demo?"selected":""} onClick={()=>{setDemo(false);setCategory("Todas");setQuery("");}}>Ofertas reais</button></div></div>
           <form className="search-form" onSubmit={search}><Search size={21}/><input id="product-search" placeholder={demo?"Busque nos exemplos: fone, cafeteira, smartwatch…":"Digite um produto, código MLB ou link do anúncio…"} value={query} onChange={e=>setQuery(e.target.value)}/><button className="button primary" disabled={busy}>{busy?<RefreshCw size={16} className="spin"/>:<Search size={16}/>}Buscar ofertas</button></form>
@@ -108,7 +193,7 @@ export default function Dashboard() {
       {tab==="Histórico"&&<>{data.events.length?<section className="history-list">{data.events.map(e=><article key={e.id}><span className="history-icon">{e.type==="publish"?<Send size={18}/>:<RefreshCw size={18}/>}</span><div><h3>{e.type==="publish"?"Publicação":e.type==="scan"?"Coleta do Top 100":"Verificação de preços"}</h3><p>{e.message}</p></div><time>{date(e.createdAt)}</time></article>)}</section>:<Empty icon={History} title="Os primeiros registros aparecem aqui">Execute uma verificação ou publique uma oferta para acompanhar os resultados.</Empty>}</>}
 
       {tab==="Configurações"&&<div className="settings-grid"><section className="panel"><div className="panel-title"><Zap size={21}/><h2>Automação de publicações</h2></div><p>Quando um anúncio real atingir sua meta, o monitor cria rascunhos para os três canais. Ative a opção abaixo para enviar os rascunhos automáticos ao Facebook e ao Instagram durante as verificações.</p><label className="toggle-row"><div><b>Publicar automaticamente</b><small>WhatsApp continua com exportação manual. Instagram exige imagem pública configurada no rascunho.</small></div><input type="checkbox" role="switch" checked={data.settings.autoPublish} disabled={busy} onChange={e=>action("settings",{autoPublish:e.target.checked},"Preferência de publicação salva.")}/></label><div className="notice compact"><Clock size={17}/><p>Esta opção não inicia o agendador. Não há verificações em segundo plano ativas nesta instalação.</p></div></section><section className="panel"><div className="panel-title"><Radar size={21}/><h2>Execução em segundo plano</h2></div><p>O projeto inclui um processo de monitoramento a cada 5 minutos. Ele precisa permanecer em execução em um servidor com as seguintes variáveis:</p><ul className="variable-list">{["PROMORADAR_URL","MONITOR_SECRET","OAI_SITES_SERVICE_TOKEN"].map(v=><li key={v}><code>{v}</code></li>)}</ul><p>Também configure <code>ML_ACCESS_TOKEN</code> no Site. Tokens expirados ou consultas sem permissão aparecem como erro no alerta.</p><p className="subtle">Horários exibidos em America/Sao_Paulo. Limite: 30 produtos monitorados por execução.</p></section><section className="panel wide"><div className="panel-title"><Link2 size={21}/><h2>Links de afiliado e cupons</h2></div><p>Use o link gerado pelo seu programa de afiliados ao criar o rascunho ou o alerta. O bot preserva esse link e identifica a publicidade na legenda. O cadastro de afiliado não garante, por si só, acesso à API de busca; o aplicativo do Mercado Livre precisa ter as permissões correspondentes.</p></section></div>}
-      <footer className="app-footer"><span><Radar size={14}/>PromoRadar <span className="footer-divider">·</span> Cada bom negócio no seu radar.</span><span>Mercado Livre + Shopee <span className="footer-divider">·</span> BRL</span></footer>
+      <footer className="app-footer"><span><BookOpen size={15} />PromoRadar</span><span>Mercado Livre + Shopee <span className="footer-divider">·</span> BRL</span></footer>
     </main></div>
 
     {toast&&<div role="status" className="toast"><CheckCircle2 size={19}/><span>{toast}</span><button onClick={()=>setToast("")} aria-label="Fechar aviso"><X size={16}/></button></div>}

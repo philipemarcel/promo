@@ -1,0 +1,437 @@
+/* The paper sits behind the controls so the torn edges never clip content. */
+.product-grid {
+  gap: clamp(1.4rem, 2.5vw, 2.2rem) clamp(1.1rem, 2.2vw, 1.8rem);
+  margin-top: .45rem;
+}
+
+.product-card {
+  --paper: #fffdf7;
+  --product-mat: #f1e9ff;
+  --tape: #e1d5fb;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1rem .85rem 1.25rem 1.55rem;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  filter: drop-shadow(0 5px 6px #3b29421c);
+  transition: transform .24s ease, filter .24s ease;
+}
+
+.product-card:hover {
+  box-shadow: none;
+  translate: none;
+}
+
+.product-grid > :nth-child(3n + 2) .product-card,
+.product-grid > .product-card:nth-child(3n + 2) {
+  --product-mat: #fbe5de;
+  --tape: #f7c7c0;
+}
+
+.product-grid > :nth-child(3n + 3) .product-card,
+.product-grid > .product-card:nth-child(3n + 3) {
+  --product-mat: #e7efdb;
+  --tape: #cbdcae;
+}
+
+.product-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 17px, #db9dac6b 17px 18px, transparent 18px),
+    repeating-linear-gradient(transparent 0 26px, #a59ac82b 26px 27px),
+    var(--paper);
+  mask:
+    radial-gradient(circle at 8px 12px, transparent 3.35px, #000 4px) left top / 18px 26px repeat-y,
+    linear-gradient(#000 0 0) right / calc(100% - 17px) 100% no-repeat;
+  clip-path: polygon(
+    0 0, 100% 0, 100% calc(100% - 9px),
+    97% calc(100% - 3px), 93% calc(100% - 6px), 90% 100%,
+    86% calc(100% - 5px), 81% calc(100% - 2px), 77% calc(100% - 8px),
+    73% calc(100% - 3px), 69% calc(100% - 6px), 65% 100%,
+    61% calc(100% - 4px), 57% calc(100% - 2px), 52% calc(100% - 8px),
+    48% calc(100% - 4px), 43% calc(100% - 6px), 39% 100%,
+    35% calc(100% - 5px), 30% calc(100% - 1px), 26% calc(100% - 7px),
+    22% calc(100% - 3px), 17% calc(100% - 6px), 13% 100%,
+    9% calc(100% - 5px), 6% calc(100% - 2px), 3% calc(100% - 7px), 0 100%
+  );
+  pointer-events: none;
+}
+
+.product-card::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 47%;
+  width: 66px;
+  height: 17px;
+  opacity: .8;
+  background: repeating-linear-gradient(120deg, #fff7 0 2px, transparent 2px 5px), var(--tape);
+  clip-path: polygon(2% 0, 100% 0, 95% 25%, 100% 39%, 96% 63%, 100% 100%, 0 100%, 4% 68%, 0 51%, 4% 28%);
+  transform: rotate(-5deg);
+  transition: transform .25s ease;
+  pointer-events: none;
+}
+
+.product-image {
+  position: relative;
+  height: clamp(9.2rem, 14.4vw, 12.8rem);
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #37274919;
+  border-radius: .35rem .8rem .44rem .65rem;
+  background: radial-gradient(ellipse at 50% 46%, #fff9, transparent 72%), var(--product-mat);
+}
+
+.product-image .product-art,
+.product-image .product-photo {
+  transition: transform .28s ease;
+}
+
+.product-image .product-photo {
+  width: 90%;
+  height: 84%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.product-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: .9rem .1rem .25rem;
+}
+
+.product-body h3 {
+  color: var(--ink, #282746);
+  font-family: var(--display, Georgia, serif);
+  font-size: 1.03rem;
+  line-height: 1.27;
+  font-weight: 650;
+  min-height: 2.65rem;
+  margin: .55rem 0 .55rem;
+}
+
+.product-body h3 button:hover { color: var(--purple, #5845a4); }
+
+.ranked-offer .rank-number {
+  left: 2.1rem;
+  top: 3rem;
+  padding: .03rem .45rem;
+  color: #564074;
+  background: #fffdf6;
+  border: 1px solid #a68eae40;
+  border-radius: .3rem;
+  font-family: var(--hand, cursive);
+  font-size: 1.12rem;
+  line-height: 1.25;
+  font-weight: 700;
+  transform: rotate(-6deg);
+  transition: transform .24s ease;
+}
+
+.product-card .discount-tag {
+  top: .55rem;
+  left: .5rem;
+  max-width: calc(100% - 3.1rem);
+  color: #3d6142;
+  background: #e7efd8;
+  border: 1px solid #adc6a277;
+  border-radius: .3rem .43rem .3rem .4rem;
+  font-size: .71rem;
+  line-height: 1.15;
+  transform: rotate(-3deg);
+}
+
+.product-card .shopee-tag {
+  color: #843c35;
+  background: #ffebe1;
+  border-color: #c1857955;
+}
+
+.product-card .watch-icon {
+  top: .45rem;
+  right: .45rem;
+  width: 2rem;
+  height: 2rem;
+  color: #534285;
+  background: #fffdf7;
+  border-color: #8775a740;
+}
+
+.product-card .watch-icon:hover { background: #eee4ff; }
+.product-card .example-tag { color: #5d5070; font-weight: 650; }
+
+.product-card .merchant,
+.product-card .price-line del,
+.product-card .shipping,
+.product-card .card-updated {
+  color: var(--muted, #62576f);
+  font-size: .76rem;
+}
+
+.product-card .merchant { font-weight: 650; }
+.product-card .merchant-category { font-weight: 450; }
+.product-card .shipping.free { color: #406d48; }
+
+.product-card .price-line strong {
+  width: fit-content;
+  padding: .05em .16em;
+  color: var(--ink, #282746);
+  background: linear-gradient(transparent 57%, #f3df947a 57% 92%, transparent 92%);
+  font-family: var(--display, Georgia, serif);
+  font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+  letter-spacing: -.045em;
+  line-height: 1.15;
+}
+
+.product-card .history-summary {
+  margin-top: .65rem;
+  border-top: 1px dashed #8d83ac57;
+  color: #645976;
+}
+
+.product-card .history-summary.enough { color: #534285; }
+.product-card .history-summary small { color: var(--muted, #62576f); }
+
+.product-card .coupon-strip {
+  color: #4b3e72;
+  background: #eee5f9;
+  border: 1px dashed #9f85c87d;
+  border-radius: .4rem;
+  font-size: .76rem;
+}
+
+.product-card .coupon-strip strong { color: #4b3e72; font-size: .82rem; }
+.product-card .coupon-strip.no-coupon { color: #635b6c; background: #f4f0e8; border-color: #b0a6ad80; }
+
+.product-card .card-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: .65rem;
+}
+
+.product-card .card-buttons .button {
+  min-width: 0;
+  padding-inline: .3rem;
+  white-space: normal;
+  font-size: .76rem;
+}
+
+.product-card .product-share {
+  margin-top: .5rem;
+  color: #2e6141;
+  background: #e7f2db;
+  border-color: #a8bf997c;
+}
+
+.product-card .product-share:hover { background: #dceccb; }
+.product-card .card-updated { text-align: left; margin-top: .7rem; }
+
+/* Sticky notes use solid pastel paper with a lifted corner and washi tape. */
+.coupon-grid {
+  gap: clamp(1.5rem, 2.9vw, 2.35rem) clamp(1rem, 2.35vw, 1.95rem);
+  margin-top: 1.2rem;
+}
+
+.coupon-card {
+  --note-paper: #f0e7ff;
+  --note-edge: #c5addc;
+  --note-tape: #c6acec;
+  --note-angle: -.65deg;
+  --note-fold: #d7c6eb;
+  --note-ink: #4f3b72;
+  min-width: 0;
+  overflow: visible;
+  padding: 1.35rem 1.15rem 1.5rem;
+  color: var(--ink, #282746);
+  background: linear-gradient(167deg, #fff4, transparent 64%), var(--note-paper);
+  border: 1px solid color-mix(in srgb, var(--note-edge), transparent 30%);
+  border-radius: .16rem .32rem .15rem .38rem;
+  box-shadow: 2px 7px 12px #3b294225, 0 1px 1px #3b29421f;
+  transform: rotate(var(--note-angle));
+  transition: transform .24s ease, box-shadow .24s ease;
+}
+
+.coupon-card:nth-child(even) { --note-angle: .55deg; }
+
+.coupon-card[data-marketplace="shopee"] {
+  --note-paper: #ffe3db;
+  --note-edge: #dba99e;
+  --note-tape: #edb0a1;
+  --note-fold: #efc0b6;
+  --note-ink: #763e39;
+}
+
+.coupon-card.coupon-featured {
+  --note-paper: #fff0ae;
+  --note-edge: #d4bd70;
+  --note-tape: #d4be84;
+  --note-fold: #f1dd90;
+  --note-ink: #634b1d;
+  border-color: #cfb363b8;
+  box-shadow: 3px 8px 14px #5f4c272f, 0 1px 1px #5f4c271c;
+}
+
+.coupon-card.coupon-featured[data-marketplace="shopee"] {
+  --note-paper: #e6efd9;
+  --note-edge: #a8bf91;
+  --note-tape: #b5cda2;
+  --note-fold: #c9d9b2;
+  --note-ink: #455b37;
+  border-color: #acc195;
+}
+
+.coupon-card[data-status="expired"] {
+  --note-paper: #eee9e9;
+  --note-edge: #c0aeb1;
+  --note-tape: #c8b5bb;
+  --note-fold: #ddd1d4;
+  --note-ink: #5c4a51;
+}
+
+.coupon-card::before,
+.coupon-card::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.coupon-card::before {
+  top: -.57rem;
+  left: 50%;
+  z-index: 1;
+  width: 5.1rem;
+  height: 1.13rem;
+  background: repeating-linear-gradient(112deg, #fff5 0 2px, transparent 2px 5px), var(--note-tape);
+  clip-path: polygon(0 0, 100% 0, 96% 24%, 100% 48%, 96% 68%, 100% 100%, 0 100%, 4% 71%, 0 48%, 4% 26%);
+  opacity: .8;
+  transform: translateX(-50%) rotate(-6deg);
+}
+
+.coupon-card::after {
+  bottom: 0;
+  right: 0;
+  width: 1.35rem;
+  height: 1.35rem;
+  background: linear-gradient(135deg, var(--note-fold) 48%, #4b365636 49%, #fffc 56%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  transform: rotate(90deg);
+  transition: filter .24s ease;
+  border-radius: .18rem 0 0;
+}
+
+.coupon-card .coupon-featured-ribbon {
+  width: fit-content;
+  max-width: 100%;
+  margin: .05rem 0 1rem;
+  padding: .18rem .58rem .26rem;
+  color: var(--note-ink);
+  background: #fff9;
+  border: 1px solid #78633946;
+  border-radius: .45rem .65rem .32rem .59rem;
+  font-family: var(--hand, cursive);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.05;
+  transform: rotate(-2deg);
+}
+
+.coupon-card .coupon-card-top { color: var(--note-ink); margin-bottom: .8rem; }
+
+.coupon-card .coupon-market,
+.coupon-card .coupon-percent-detail,
+.coupon-card .coupon-numbers dt,
+.coupon-card .coupon-numbers dd,
+.coupon-card p,
+.coupon-card small { color: #4e4054; }
+
+.coupon-card .coupon-max-value {
+  font-family: var(--display, Georgia, serif);
+  font-size: clamp(1.63rem, 2.65vw, 2.25rem);
+  color: var(--note-ink);
+  line-height: 1.15;
+  letter-spacing: -.045em;
+}
+
+.coupon-card .coupon-percent-detail { margin: .42rem 0 1rem; }
+
+.coupon-card .coupon-code {
+  color: var(--note-ink);
+  background: #fff7;
+  border: 1px dashed color-mix(in srgb, var(--note-ink), transparent 55%);
+  border-radius: .35rem .52rem .35rem .4rem;
+}
+
+.coupon-card .coupon-code:hover { background: #fffc; }
+.coupon-card .coupon-issues { color: #774733; }
+.coupon-card .coupon-footer { border-top: 1px dashed #72577960; }
+.coupon-card .coupon-footer a { color: #4e3979; }
+.coupon-card .coupon-footer .icon-button { color: #574467; }
+.coupon-card .coupon-share { background: #f4fff0ab; color: #2c6141; border-color: #5c896e66; }
+.coupon-card .coupon-share:hover { background: #f5fff1; }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .product-card:hover {
+    transform: translateY(-4px) rotate(-.35deg);
+    filter: drop-shadow(0 9px 8px #3b294229);
+  }
+  .product-card:hover::after { transform: rotate(-1deg); }
+  .product-card:hover .product-art,
+  .product-card:hover .product-photo { transform: scale(1.045) rotate(-1deg); }
+  .ranked-offer:hover .rank-number { transform: translateY(-4px) rotate(-3deg); }
+  .coupon-card:hover { transform: translateY(-5px) rotate(0deg); box-shadow: 2px 12px 16px #3b29422f; }
+  .coupon-card:hover::after { filter: brightness(1.08); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ranked-offer,
+  .product-grid > .product-card,
+  .coupon-grid > .coupon-card { animation: place-on-page .38s cubic-bezier(.2,.75,.35,1) both; }
+  .ranked-offer:nth-child(3n + 2),
+  .product-grid > .product-card:nth-child(3n + 2),
+  .coupon-grid > .coupon-card:nth-child(3n + 2) { animation-delay: 50ms; }
+  .ranked-offer:nth-child(3n + 3),
+  .product-grid > .product-card:nth-child(3n + 3),
+  .coupon-grid > .coupon-card:nth-child(3n + 3) { animation-delay: 100ms; }
+}
+
+@keyframes place-on-page {
+  from { opacity: 0; translate: 0 10px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media (max-width: 820px) {
+  .product-card { padding-right: .65rem; padding-left: 1.4rem; }
+  .ranked-offer .rank-number { left: 1.95rem; }
+  .product-image { height: 9.6rem; }
+  .product-card .card-buttons { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .product-grid { grid-template-columns: minmax(0, 1fr); }
+  .product-card { padding: .95rem .9rem 1.15rem 1.58rem; }
+  .ranked-offer .rank-number { left: 2.17rem; }
+  .product-image { height: clamp(9rem, 44vw, 12rem); }
+  .product-body h3 { min-height: auto; }
+  .product-card .card-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .coupon-card, .coupon-card:nth-child(even) { --note-angle: 0deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-card,
+  .product-card::after,
+  .product-image .product-art,
+  .product-image .product-photo,
+  .ranked-offer .rank-number,
+  .ranked-offer,
+  .coupon-card,
+  .coupon-card::after { animation: none; transition: none; }
+}

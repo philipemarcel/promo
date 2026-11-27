@@ -2,7 +2,8 @@ import { env } from "cloudflare:workers";
 import { getChatGPTUser } from "../../chatgpt-auth";
 import { list, get, put, remove, database } from "../../../lib/storage";
 import { searchOffers, getOffer } from "../../../lib/mercado";
-import { caption, estimate, demoCoupons, type Coupon } from "../../../lib/offers";
+import { caption, estimate, demoCoupons, checkCoupon, rankCoupons, type Coupon, type Marketplace } from "../../../lib/offers";
+import { affiliateUrl } from "../../../lib/affiliate";
 import { publish } from "../../../lib/publisher";
 import { combinedSearch,currentOffer,hydrate,scanCatalog,topOffers } from "../../../lib/catalog";
 import { classifyShopee } from "../../../lib/ranking";
@@ -12,7 +13,7 @@ const json=(data:any,status=200)=>Response.json(data,{status,headers:{"Cache-Con
 function fail(message:string):never {throw new Error(message);}
 function positive(value:any,max=10000000) { const n=Number(value); if(!Number.isFinite(n)||n<=0||n>max) fail("Informe um valor positivo válido."); return Math.round(n*100)/100; }
 function validUrl(value:string) { const url=new URL(value); if(url.protocol!=="https:") fail("Use um link HTTPS."); return url.href; }
-function affiliate(value:any) { if(!value) return ""; const url=new URL(validUrl(String(value))); if(!/(^|\.)(mercadolivre\.com(\.br)?|mercadolibre\.com|meli\.la|shopee\.com\.br|shope\.ee)$/.test(url.hostname)) fail("Use seu link oficial de afiliado do Mercado Livre ou da Shopee."); return url.href; }
+function affiliate(value:any,marketplace?:Marketplace) {return value?affiliateUrl(String(value),marketplace):"";}
 async function auth(request:Request,action:string) {
   if(["monitor","scan"].includes(action) && runtime().MONITOR_SECRET && request.headers.get("Authorization")===`Bearer ${runtime().MONITOR_SECRET}`) return true;
   return !!(await getChatGPTUser());
@@ -75,7 +76,7 @@ export async function GET(request:Request,{params}:{params:Promise<{action:strin
     if(!await auth(request,action)) return json({error:"Entre com ChatGPT para acessar seus dados."},401);
     if(action==="bootstrap") {
       const [watches,coupons,posts,events,settings]=await Promise.all([list("watch"),list("coupon"),list("post"),list("event"),get("settings","settings")]);
-      return json({watches,coupons,posts,events:events.slice(0,50),settings:settings||{autoPublish:false},connections:{mercado:!!runtime().ML_ACCESS_TOKEN,shopee:!!(runtime().SHOPEE_APP_ID&&runtime().SHOPEE_SECRET),facebook:!!(runtime().META_ACCESS_TOKEN&&runtime().FACEBOOK_PAGE_ID),instagram:!!(runtime().META_ACCESS_TOKEN&&runtime().INSTAGRAM_USER_ID),monitor:!!runtime().MONITOR_SECRET}});
+      return json({watches,coupons:rankCoupons(coupons),posts,events:events.slice(0,50),settings:settings||{autoPublish:false},connections:{mercado:!!runtime().ML_ACCESS_TOKEN,shopee:!!(runtime().SHOPEE_APP_ID&&runtime().SHOPEE_SECRET),facebook:!!(runtime().META_ACCESS_TOKEN&&runtime().FACEBOOK_PAGE_ID),instagram:!!(runtime().META_ACCESS_TOKEN&&runtime().INSTAGRAM_USER_ID),monitor:!!runtime().MONITOR_SECRET}});
     }
     if(action==="search") {
       const q=new URL(request.url).searchParams.get("q")?.trim(); if(!q||q.length>200) fail("Digite um produto ou código MLB com até 200 caracteres.");
@@ -102,22 +103,35 @@ export async function POST(request:Request,{params}:{params:Promise<{action:stri
       if(body.toggle) {const watch=await get(body.id,"watch");if(!watch)fail("Alerta não encontrado."); return json(await put("watch",{...watch,enabled:!watch.enabled},body.id));}
       if((await list("watch")).length>=30) fail("Limite de 30 alertas nesta versão.");
       const offer=body.offer?.demo?body.offer:await currentOffer(body.offer?.id,body.offer?.marketplace,runtime());
-      return json(await put("watch",{offer,target:positive(body.target),affiliate:affiliate(body.affiliate),imageUrl:body.imageUrl?validUrl(body.imageUrl):"",enabled:true,history:[{time:new Date().toISOString(),price:offer.price}]}));
+      return json(await put("watch",{offer,target:positive(body.target),affiliate:affiliate(body.affiliate,offer.marketplace||"mercado"),imageUrl:body.imageUrl?validUrl(body.imageUrl):"",enabled:true,history:[{time:new Date().toISOString(),price:offer.price}]}));
     }
     if(action==="coupon") {
       if(body.delete) {await remove("coupon",body.id);return json({ok:true});}
+      if(body.id&&!await get(body.id,"coupon"))fail("Cupom não encontrado.");
       if(!/^[\w-]{2,40}$/.test(body.code)) fail("Informe um código de cupom válido.");
       if(!["percent","fixed"].includes(body.type)) fail("Tipo de desconto inválido.");
       const value=positive(body.value,body.type==="percent"?100:100000);
       if(!Number.isFinite(Date.parse(body.expires))||Date.parse(body.expires)<=Date.now()) fail("Informe uma validade futura.");
       if(!body.restrictions?.trim()) fail("Descreva as restrições e condições do cupom.");
-      return json(await put("coupon",{code:body.code.toUpperCase(),marketplace:body.marketplace==="shopee"?"shopee":"mercado",shopId:body.shopId?String(body.shopId).slice(0,60):undefined,itemId:body.itemId?String(body.itemId).slice(0,100):undefined,type:body.type,value,min:body.min?positive(body.min):0,cap:body.cap?positive(body.cap):0,category:String(body.category||"Todas").slice(0,100),expires:body.expires,source:validUrl(body.source),restrictions:String(body.restrictions).slice(0,2000),verified:!!body.verified}));
+      const marketplace=body.marketplace==="shopee"?"shopee":"mercado";
+      const coupon={code:body.code.toUpperCase(),marketplace,shopId:body.shopId?String(body.shopId).slice(0,60):undefined,itemId:body.itemId?String(body.itemId).slice(0,100):undefined,type:body.type,value,min:Number(body.min)?positive(body.min):0,cap:body.type==="percent"&&Number(body.cap)?positive(body.cap):0,category:String(body.category||"Todas").slice(0,100),expires:body.expires,source:affiliateUrl(String(body.source),marketplace),restrictions:String(body.restrictions).slice(0,2000),verified:!!body.verified,affiliate:affiliate(body.affiliate,marketplace),checkedAt:new Date().toISOString()};
+      return json(await put("coupon",coupon,body.id));
+    }
+    if(action==="coupon-check") {
+      const coupons=body.id?[await get(body.id,"coupon")]:await list("coupon");
+      const checks=[];
+      for(const coupon of coupons){if(!coupon)fail("Cupom não encontrado.");const check=checkCoupon(coupon);await put("coupon",{...coupon,checkedAt:check.checkedAt},coupon.id);checks.push({id:coupon.id,...check});}
+      return json({checks});
+    }
+    if(action==="coupon-link") {
+      const coupon=await get(body.id,"coupon");if(!coupon)fail("Cupom não encontrado.");
+      return json(await put("coupon",{...coupon,affiliate:affiliateUrl(String(body.affiliate),coupon.marketplace||"mercado")},coupon.id));
     }
     if(action==="queue") {
       if(body.delete) {const p=await get(body.id,"post");if(p?.status==="sending")fail("Envio em andamento.");await remove("post",body.id);return json({ok:true});}
       if(!["whatsapp","instagram","facebook"].includes(body.channel)) fail("Selecione um canal.");
       const offer=body.offer?.demo?body.offer:await currentOffer(body.offer?.id,body.offer?.marketplace,runtime());
-      const link=affiliate(body.affiliate);
+      const link=affiliate(body.affiliate,offer.marketplace||"mercado");
       const coupon=estimate(offer,[...await list("coupon"),...demoCoupons]).coupon;
       return json(await put("post",{offer,channel:body.channel,affiliate:link,caption:caption(offer,coupon,link),imageUrl:body.imageUrl?validUrl(body.imageUrl):"",status:"draft"}));
     }
@@ -135,7 +149,7 @@ export async function POST(request:Request,{params}:{params:Promise<{action:stri
       const url=new URL(validUrl(body.url));if(!/(^|\.)shopee\.com\.br$/.test(url.hostname))fail("Informe o link completo do produto na Shopee.");
       const match=url.pathname.match(/\/product\/(\d+)\/(\d+)/)||url.pathname.match(/-i\.(\d+)\.(\d+)/);if(!match)fail("Use um link completo com shopId e itemId, sem encurtador.");
       if(!body.title?.trim())fail("Informe o nome do produto.");
-      const offer={id:`${match[1]}-${match[2]}`,marketplace:"shopee" as const,sellerId:match[1],title:String(body.title).slice(0,250),price:positive(body.price),category:String(body.category||"Sem categoria").slice(0,100),url:url.href,affiliate:affiliate(body.affiliate),freeShipping:false,manual:true,checkedAt:new Date().toISOString(),seller:classifyShopee({id:match[1],name:match[1],profile:`https://shopee.com.br/shop/${match[1]}`})};
+      const offer={id:`${match[1]}-${match[2]}`,marketplace:"shopee" as const,sellerId:match[1],title:String(body.title).slice(0,250),price:positive(body.price),category:String(body.category||"Sem categoria").slice(0,100),url:url.href,affiliate:affiliate(body.affiliate,"shopee"),freeShipping:false,manual:true,checkedAt:new Date().toISOString(),seller:classifyShopee({id:match[1],name:match[1],profile:`https://shopee.com.br/shop/${match[1]}`})};
       return json((await hydrate([offer],await list("coupon") as Coupon[],runtime()))[0]);
     }
     if(action==="settings") {const previous=await get("settings","settings");return json(await put("settings",{...previous,autoPublish:body.autoPublish===undefined?previous?.autoPublish||false:body.autoPublish===true,...(body.queries?{queries:String(body.queries).split(",").map(q=>q.trim().slice(0,80)).filter(Boolean).slice(0,12)}:{})},"settings"));}

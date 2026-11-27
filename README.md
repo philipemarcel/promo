@@ -60,6 +60,18 @@ Shopee: alta com nota da loja de pelo menos 4,7 e 100 avaliações; baixa com at
 
 Cadastro manual de códigos obtidos em fontes oficiais, com plataforma, loja/produto opcionais, categoria, validade, valor mínimo, percentual/valor fixo e teto. Não há um feed automático de todos os cupons disponível nesta instalação. Regras da conta, pagamento, disponibilidade de campanha e resgate exigem confirmação no carrinho. Não prometemos aplicação de cupons personalizados.
 
+### Classificação e verificação de cupons
+
+O catálogo ordena cupons conferidos e dentro da validade pelo desconto máximo em reais. Percentuais usam o teto da campanha; descontos fixos usam o próprio valor, sem um segundo teto. Por exemplo, 20% com teto de R$ 1.000 tem destaque sobre 50% com teto de R$ 5. A interface informa a compra necessária para atingir o teto (R$ 5.000 no primeiro caso). Empates usam menor compra para atingir o máximo. Cupons expirados, sem conferência manual ou sem teto informado ficam sem destaque; percentuais sem teto informado não participam das estimativas. Nos produtos, a escolha continua usando a economia efetiva para o preço e as condições daquele anúncio.
+
+“Verificar regras” valida os dados cadastrados (valores, fonte oficial da plataforma, prazo e conferência manual) e registra horário; não realiza resgate do cupom, consulta à conta do comprador ou confirmação de estoque da campanha. A edição preserva o horário exato de vencimento quando ele não é alterado. Não há feed automático de novos cupons nesta instalação.
+
+### Compartilhar no WhatsApp
+
+Cupons, produtos, detalhes de oferta e rascunhos possuem entrada para compartilhar. A prévia exige um link HTTPS de domínio oficial da mesma plataforma. O link deve ter sido gerado na conta de afiliado do usuário; verificar domínio não comprova atribuição de comissão. O link pode ser salvo no cupom para reutilização. Nenhuma tag de afiliado é inventada ou acrescentada.
+
+A mensagem inclui o código e as condições do cupom, teto, mínimo, validade e identificação de publicidade; para produtos, usa somente um cupom compatível. O endereço `https://wa.me/?text=...` preserva o texto e a query do link de afiliado. O usuário escolhe contato/grupo e confirma o envio no WhatsApp. A prévia revalida vencimento antes de abrir o compartilhamento. Esse fluxo é independente da exportação manual para Status e não envia mensagens automaticamente.
+
 ## Monitoramento em segundo plano
 
 O processo independente `node scripts/monitor.mjs` executa coleta e alertas a cada 5 minutos. Precisa de Node em um servidor sempre ligado e destas variáveis do processo:
